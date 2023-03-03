@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Text;
 using System.Text.Json;
 
@@ -10,13 +11,14 @@ public partial class App
     private const string GoodBye = "Thank you for playing the game!";
     public string playername = "";
     public bool gameOn = true;
-
+    public List<Score> sortedList = new();
     public int i = 0;
 
     public void Run()
     {
         Random random = new Random();
         List<Score> list = ReadFromFile();
+
         while (gameOn)
         {
             int guess = 0;
@@ -25,7 +27,6 @@ public partial class App
             Console.WriteLine("Let's play a game!");
             Console.WriteLine("**********************************");
             Console.WriteLine("Choose a number between 1 and 100:");
-
 
             while (guess != number)
             {
@@ -67,14 +68,10 @@ public partial class App
             Console.WriteLine("Please write your name:");
             playername = Console.ReadLine();
             list.Add(new Score() { Name = playername, Guesses = i, Date = DateTime.Now });
+            i = 0;
             Menu(list);
-
-
         }
-
-
     }
-
     private List<Score> Menu(List<Score> list)
     {
         bool menu = true;
@@ -93,32 +90,40 @@ public partial class App
                 Console.Clear();
                 return list;
             }
-            else if (answer == "N")
+            if (answer == "N")
             {
                 gameOn = false;
                 Console.WriteLine(GoodBye);
                 SortTheList(list);
+                SaveTheList(sortedList);
                 Environment.Exit(0);
             }
-            else
+            if (answer == "L")
             {
-                foreach (var item in list)
+                SortTheList(list);
+                SaveTheList(sortedList);
+                var counter = 1;
+                foreach (var item in sortedList)
                 {
-                    Console.WriteLine(item.Name + item.Guesses + item.Date);
+                    Console.WriteLine($"Place {counter} is held by {item.Name} with {item.Guesses} guesses at {item.Date}.");
+                    counter++;
                 }
                 return list;
             }
-            
+            else
+            {
+                Console.WriteLine("Not a valid option, you must choose between Y,N or L.Thank you!");
+            }
+
         }
         return list;
     }
     private void SortTheList(List<Score> list)
     {
-        var sortedList = list.OrderBy(x => x.Guesses).ToList();
+        sortedList = list.OrderBy(x => x.Guesses).ToList();
         if (sortedList.Count > 5)
         {
             sortedList.RemoveRange(5, sortedList.Count() - 5);
-            SaveTheList(sortedList);
         }
     }
 
